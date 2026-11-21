@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Safe extension test page</title>
+<style>
+  body { font: 13px/1.4 system-ui, sans-serif; margin: 16px; background: #fafafa; color: #111; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  h2 { font-size: 14px; margin: 20px 0 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 12px; }
+  figure { margin: 0; width: 260px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 6px; }
+  figure > img, figure > canvas, figure > picture > img, figure > .bg { display: block; width: 260px; height: 180px; object-fit: cover; }
+  figcaption { font-size: 11px; color: #374151; margin-top: 4px; min-height: 30px; }
+  figcaption code { font-size: 10px; }
+  .exp-blur { color: #b91c1c; font-weight: 600; } .exp-clean { color: #15803d; font-weight: 600; } .exp-skip { color: #7c3aed; font-weight: 600; }
+  .bg { background-size: cover; background-position: center; }
+  #bg-positive { background-image: url("img/horses.jpg"); }
+  #bg-negative { background-image: url("img/texture-plasma.jpg"); }
+  .small-icon { width: 64px !important; height: 64px !important; }
+  .css-small { width: 80px !important; height: 80px !important; }
+  .spacer { height: 2600px; border-left: 4px dashed #ddd; margin: 12px 0; padding-left: 8px; color: #9ca3af; }
+  iframe { width: 480px; height: 180px; border: 1px solid #ccc; }
+</style>
+</head>
+<body>
+<h1>Safe extension test page</h1>
+<p>Every test element has <code>data-expect</code> = <b>blur</b> | <b>clean</b> | <b>skip</b> (never scanned).
+Captions show the live <code>data-safe-*</code> state written by the extension.</p>
+
+<h2>Capture fallback (kept at the top so they are on screen)</h2>
+<div class="grid">
+  <figure><img id="blob-img" data-expect="blur" data-expect-label="bird" alt="blob: URL image"><figcaption>blob: URL (extension cannot fetch it)</figcaption></figure>
+  <figure><canvas id="canvas-positive" data-expect="blur" data-expect-label="person" width="520" height="360"></canvas><figcaption>canvas with a photo drawn in</figcaption></figure>
+  <figure><canvas id="canvas-negative" data-expect="clean" width="520" height="360"></canvas><figcaption>canvas with an abstract gradient</figcaption></figure>
+  <figure><img id="hotlink" data-expect="blur" data-expect-label="person" src="/hotlink/bus.jpg" alt="hotlink-protected"><figcaption>hotlink-protected (403 without page Referer)</figcaption></figure>
+</div>
+
+<h2>Clear positives</h2>
+<div class="grid">
+  <figure><img id="p-person" data-expect="blur" src="img/person.jpg" alt="person, dog, horse"><figcaption>person + dog + horse</figcaption></figure>
+  <figure><img id="p-bus" data-expect="blur" src="img/bus.jpg" alt="bus and people"><figcaption>bus + people</figcaption></figure>
+  <figure><img id="p-dog" data-expect="blur" src="img/dog-600.jpg" alt="dog"><figcaption>dog</figcaption></figure>
+  <figure><img id="p-dogbike" data-expect="blur" src="img/dog-bike-truck.jpg" alt="dog, bicycle, truck"><figcaption>dog + bicycle + truck</figcaption></figure>
+</div>
+
+<h2>Negatives (abstract textures)</h2>
+<div class="grid">
+  <figure><img id="n-plasma" data-expect="clean" src="img/texture-plasma.jpg" alt="plasma"><figcaption>plasma fractal</figcaption></figure>
+  <figure><img id="n-noise" data-expect="clean" src="img/texture-noise.png" alt="noise"><figcaption>gray noise</figcaption></figure>
+  <figure><img id="n-swirl" data-expect="clean" src="img/texture-swirl.jpg" alt="swirl"><figcaption>gradient swirl</figcaption></figure>
+  <figure><img id="n-hex" data-expect="clean" src="img/texture-hex.png" alt="hexagons"><figcaption>hex pattern</figcaption></figure>
+</div>
+
+<h2>Other domain, srcset, picture, session cookie, CSS background</h2>
+<div class="grid">
+  <figure><img id="x-origin" data-expect="blur" data-expect-label="horse" src="http://127.0.0.1:8001/horses.jpg" alt="cross-origin horses"><figcaption>127.0.0.1:8001, no CORS headers</figcaption></figure>
+  <figure><img id="x-origin-neg" data-expect="clean" src="http://127.0.0.1:8001/texture-swirl.jpg" alt="cross-origin texture"><figcaption>127.0.0.1:8001 texture</figcaption></figure>
+  <figure><img id="srcset" data-expect="blur" src="img/bus-400.jpg" srcset="img/bus-400.jpg 400w, img/bus-800.jpg 800w" sizes="260px" alt="srcset bus"><figcaption>srcset 400w/800w</figcaption></figure>
+  <figure><picture><source srcset="img/eagle.jpg" type="image/jpeg"><img id="picture-eagle" data-expect="blur" data-expect-label="bird" src="img/texture-hex.png" alt="picture eagle"></picture><figcaption>&lt;picture&gt;&lt;source&gt; (bird)</figcaption></figure>
+  <figure><img id="session" data-expect="blur" src="/private/dog-600.jpg" alt="session-gated"><figcaption>/private/ needs the page's session cookie</figcaption></figure>
+  <figure><div id="bg-positive" class="bg" data-expect="blur"></div><figcaption>CSS background-image (horses)</figcaption></figure>
+  <figure><div id="bg-negative" class="bg" data-expect="clean"></div><figcaption>CSS background-image (texture)</figcaption></figure>
+</div>
+
+<h2>Inside an open shadow root (web component)</h2>
+<div class="grid">
+  <figure><safe-test-card id="shadow-host"></safe-test-card><figcaption>&lt;img&gt; inside an open shadow root (people)</figcaption></figure>
+</div>
+
+<h2>Small (must never be scanned)</h2>
+<div class="grid">
+  <figure><img id="icon-64" class="small-icon" data-expect="skip" src="img/icon-dog-64.png" alt="64px dog icon"><figcaption>64x64 icon of a dog</figcaption></figure>
+  <figure><img id="css-80" class="css-small" data-expect="skip" src="img/zidane.jpg?small" alt="large photo shown at 80px"><figcaption>1280px photo rendered at 80x80</figcaption></figure>
+  <figure><img id="hidden" style="display:none" data-expect="skip" src="img/giraffe.jpg?hidden" alt="display:none"><figcaption>display:none (no caption state expected)</figcaption></figure>
+</div>
+
+<h2>Added by JS after 2 seconds</h2>
+<div class="grid" id="late"></div>
+
+<h2>Cross-origin iframe (all_frames)</h2>
+<iframe id="xframe" src="http://127.0.0.1:8001/frame.html"></iframe>
+
+<div class="spacer">spacer (2600px) so the next section is far below the fold</div>
+
+<h2>Lazy loading</h2>
+<div class="grid">
+  <figure><img id="lazy-native" data-expect="blur" loading="lazy" src="img/giraffe.jpg" alt="native lazy giraffe"><figcaption>loading="lazy" (giraffe)</figcaption></figure>
+  <figure><img id="lazy-js" data-expect="blur" data-expect-label="person" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" data-src="img/bus.jpg" alt="JS lazy bus"><figcaption>JS lazy-load (1x1 placeholder, data-src swap)</figcaption></figure>
+  <figure><img id="lazy-native-neg" data-expect="clean" loading="lazy" src="img/texture-noise.png?lazy" alt="native lazy texture"><figcaption>loading="lazy" (texture)</figcaption></figure>
+</div>
+
+<script>
+  // Web component with an open shadow root holding a positive image.
+  customElements.define('safe-test-card', class extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({ mode: 'open' }).innerHTML =
+        '<style>img{display:block;width:260px;height:180px;object-fit:cover}</style>' +
+        '<img id="shadow-img" data-expect="blur" data-expect-label="person" src="img/zidane.jpg?shadow">';
+    }
+  });
+
+  // Session cookie for /private/ (the extension's own fetch may or may not carry it).
+  document.cookie = 'session=ok; path=/; SameSite=Lax';
+  // Reload the session image now that the cookie exists.
+  document.getElementById('session').src = '/private/dog-600.jpg?c=1';
+
+  // blob: URL image.
+  fetch('img/eagle.jpg').then(r => r.blob()).then(b => {
+    document.getElementById('blob-img').src = URL.createObjectURL(b);
+  });
+
+  // Canvases.
+  const photo = new Image();
+  photo.onload = () => {
+    const c = document.getElementById('canvas-positive');
+    c.getContext('2d').drawImage(photo, 0, 0, c.width, c.height);
+  };
+  photo.src = 'img/zidane.jpg?canvas';
+  {
+    const c = document.getElementById('canvas-negative');
+    const g = c.getContext('2d');
+    const grad = g.createLinearGradient(0, 0, c.width, c.height);
+    grad.addColorStop(0, '#0ea5e9'); grad.addColorStop(0.5, '#a855f7'); grad.addColorStop(1, '#f59e0b');
+    g.fillStyle = grad; g.fillRect(0, 0, c.width, c.height);
+    for (let i = 0; i < 40; i++) {
+      g.strokeStyle = `hsla(${i * 9},80%,60%,.5)`; g.lineWidth = 6;
+      g.beginPath(); g.arc(260, 180, 10 + i * 8, 0, Math.PI * 1.5); g.stroke();
+    }
+  }
+
+  // Image added after 2 seconds.
+  setTimeout(() => {
+    const fig = document.createElement('figure');
+    fig.innerHTML = '<img id="late-zidane" data-expect="blur" data-expect-label="person" src="img/tile-zidane.jpg" alt="late people">' +
+                    '<figcaption>inserted at t+2s</figcaption>';
+    document.getElementById('late').appendChild(fig);
+    const fig2 = document.createElement('figure');
+    fig2.innerHTML = '<img id="late-texture" data-expect="clean" src="img/texture-swirl.jpg?late" alt="late texture">' +
+                     '<figcaption>inserted at t+2s (texture)</figcaption>';
+    document.getElementById('late').appendChild(fig2);
+  }, 2000);
+
+  // JS lazy loader (data-src swap when near the viewport).
+  const lazyObs = new IntersectionObserver(entries => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      e.target.src = e.target.dataset.src;
+      lazyObs.unobserve(e.target);
+    }
+  }, { rootMargin: '200px' });
+  document.querySelectorAll('img[data-src]').forEach(el => lazyObs.observe(el));
+
+  // Live captions from the extension's data attributes.
+  function caption() {
+    const host = document.getElementById('shadow-host');
+    const all = [...document.querySelectorAll('[data-expect]'), ...(host && host.shadowRoot ? host.shadowRoot.querySelectorAll('[data-expect]') : [])];
+    for (const el of all) {
+      const fig = el.closest('figure') || (el.getRootNode().host || el).closest('figure');
+      if (!fig) continue;
+      let cap = fig.querySelector('figcaption .live');
+      if (!cap) {
+        cap = document.createElement('div'); cap.className = 'live';
+        const exp = el.dataset.expect;
+        fig.querySelector('figcaption').insertAdjacentHTML('afterbegin',
+          `<span class="exp-${exp}">expect ${exp}</span> · <code>#${el.id}</code><br>`);
+        fig.querySelector('figcaption').appendChild(cap);
+      }
+      const s = el.dataset.safeState || '—';
+      const parts = [s];
+      if (el.dataset.safeTop) parts.push(el.dataset.safeTop);
+      if (el.dataset.safeMethod) parts.push('via ' + el.dataset.safeMethod);
+      if (el.hasAttribute('data-safe-blur')) parts.push('BLURRED');
+      const html = '<code>' + parts.join(' · ') + '</code>';
+      if (cap.innerHTML !== html) cap.innerHTML = html;
+    }
+  }
+  setInterval(caption, 300);
+</script>
+</body>
+</html>

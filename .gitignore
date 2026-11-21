@@ -1,0 +1,35 @@
+node_modules/
+# Local research/reference checkouts
+inspo/
+# Populated by `pnpm run setup` (scripts/vendor.sh)
+extension/vendor/
+extension/models/
+# Test run artifacts
+test/server.log
+test/screenshots/
+__pycache__/
+test/benchmarks/
+# Private local configuration and browser state
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.DS_Store
+*.log
+*.har
+*.crx
+*.zip
+browser-profile*/
+chrome-profile*/
+.browser-harness/
+# Optional third-party photos, downloaded by pnpm run setup:fixtures.
+# Generated texture fixtures already tracked in Git remain included.
+test/site/img/*.jpg
+test/site/img/icon-dog-64.png
+test/site/other/*.jpg
+# Generated distribution notices
+extension/LICENSE.txt
+extension/THIRD_PARTY_NOTICES.md

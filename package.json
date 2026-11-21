@@ -1,0 +1,29 @@
+{
+  "name": "safe",
+  "version": "0.1.0",
+  "private": true,
+  "description": "POC Chrome MV3 extension that blurs images containing YOLOv7 detections",
+  "license": "MIT",
+  "scripts": {
+    "setup": "./scripts/vendor.sh",
+    "serve": "python3 test/serve.py",
+    "verify": "browser-harness < test/verify.py",
+    "verify:early": "browser-harness < test/early_start.py",
+    "benchmark": "browser-harness < test/benchmark_site.py",
+    "check": "./scripts/check.sh",
+    "setup:fixtures": "./scripts/fixtures.sh"
+  },
+  "devDependencies": {
+    "@tensorflow/tfjs": "4.22.0",
+    "@tensorflow/tfjs-backend-webgpu": "4.22.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oxedom/safe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/oxedom/safe/issues"
+  },
+  "homepage": "https://github.com/oxedom/safe#readme",
+  "packageManager": "pnpm@12.21.0"
+}

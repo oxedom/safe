@@ -1,0 +1,3 @@
+allowBuilds:
+  # This optional postinstall only prints a funding message; no build is needed.
+  core-js: false

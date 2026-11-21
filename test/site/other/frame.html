@@ -1,0 +1,7 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>cross-origin frame</title>
+<style>body{margin:0;font:12px system-ui;display:flex;gap:8px;padding:8px;background:#eef}img{width:220px;height:160px;object-fit:cover}</style></head>
+<body>
+  <img id="frame-giraffe" data-expect="blur" src="giraffe.jpg" alt="giraffe in a cross-origin iframe">
+  <img id="frame-texture" data-expect="clean" src="texture-swirl.jpg" alt="texture in a cross-origin iframe">
+</body></html>
